@@ -1,7 +1,15 @@
 package com.example.ferry.model;
 
 public class CargoVehicle extends Vehicle {
-    public CargoVehicle(double area, double weight, Ferry ferry) {
-        super(area, weight, ferry);
+    private static final double AREA = 50;
+    private static final double WEIGHT = 5000;
+    public CargoVehicle() {
+        super();
+    }
+    public double getArea(){
+        return AREA;
+    }
+    public double getWeight(){
+        return WEIGHT;
     }
 }

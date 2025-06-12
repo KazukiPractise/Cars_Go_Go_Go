@@ -1,31 +1,41 @@
 package com.example.ferry.simulation;
 
-import com.example.ferry.config.AppConfig;
 import com.example.ferry.model.*;
+import com.example.ferry.simulation.testCases.TestData;
+import com.example.ferry.simulation.testCases.TestData_io;
+
 import java.util.concurrent.*;
 import java.util.*;
 
 public class Simulation {
-    public static void main(String[] args) {
-        AppConfig config = AppConfig.getInstance();
-        Ferry ferry = new Ferry(config.getFerryArea(), config.getFerryWeight());
 
+    public static void run(String testName, int passengerCount, int cargoCount, double maxArea, double maxWeight) {
+        Ferry.getInstance(maxArea, maxWeight); // инициализация Ferry singleton
         ExecutorService executor = Executors.newCachedThreadPool();
-        List<Future<Void>> futures = new ArrayList<>();
+        List<Vehicle> vehicles = new ArrayList<>();
 
-        int totalVehicles = config.getVehicleCount();
-        for (int i = 0; i < totalVehicles; i++) {
-            Vehicle v = (i % 2 == 0) ?
-                new PassengerVehicle(config.getPassengerArea(), config.getPassengerWeight(), ferry) :
-                new CargoVehicle(config.getCargoArea(), config.getCargoWeight(), ferry);
+        for (int i = 0; i < passengerCount; i++) {
+            vehicles.add(new PassengerVehicle());
+        }
+
+        for (int i = 0; i < cargoCount; i++) {
+            vehicles.add(new CargoVehicle());
+        }
+        List<Future<Void>> futures = new ArrayList<>();
+        for (Vehicle v : vehicles) {
             futures.add(executor.submit(v));
         }
 
-        futures.forEach(f -> {
-            try { f.get(); } catch (Exception e) { e.printStackTrace(); }
-        });
+        for (Future<Void> f : futures) {
+            try {
+                f.get();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
 
         executor.shutdown();
-        System.out.println("All vehicles transported.");
+        Ferry.getInstance().reset();
+        System.out.println("=== Завершён тест: " + testName + " ===\n");
     }
 }

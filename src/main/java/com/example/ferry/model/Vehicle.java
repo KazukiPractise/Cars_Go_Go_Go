@@ -8,31 +8,39 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 
 public abstract class Vehicle implements Callable<Void> {
-    protected final double area;
-    protected final double weight;
-    protected final Ferry ferry;
-    protected VehicleState state;
+    private VehicleState state;
     private static final Logger logger = LogManager.getLogger(Vehicle.class);
 
-    public Vehicle(double area, double weight, Ferry ferry) {
-        this.area = area;
-        this.weight = weight;
-        this.ferry = ferry;
+    public Vehicle() {
         this.state = new WaitingState();
     }
 
     @Override
     public Void call() throws Exception {
-        logger.info("{} - State: {}", this.getClass().getSimpleName(), state.getStateName());
+        Ferry ferry = Ferry.getInstance();
+
+        logger.info("[{}][Thread-{}] State: {}", this.getClass().getSimpleName(),
+                Thread.currentThread().getId(), state.getStateName());
+
         ferry.boardVehicle(this);
-        transitionState(); // To Boarded
-        logger.info("{} - State: {}", this.getClass().getSimpleName(), state.getStateName());
+        transitionState(); // Boarded
+
+        logger.info("[{}][Thread-{}] State: {}", this.getClass().getSimpleName(),
+                Thread.currentThread().getId(), state.getStateName());
+
         TimeUnit.SECONDS.sleep(1);
-        transitionState(); // To Crossing
-        logger.info("{} - State: {}", this.getClass().getSimpleName(), state.getStateName());
+
+        transitionState(); // Crossing
+
+        logger.info("[{}][Thread-{}] State: {}", this.getClass().getSimpleName(),
+                Thread.currentThread().getId(), state.getStateName());
+
         ferry.disembarkVehicle(this);
-        transitionState(); // To Done
-        logger.info("{} - State: {}", this.getClass().getSimpleName(), state.getStateName());
+        transitionState(); // Done
+
+        logger.info("[{}][Thread-{}] State: {}", this.getClass().getSimpleName(),
+                Thread.currentThread().getId(), state.getStateName());
+
         return null;
     }
 
@@ -44,6 +52,7 @@ public abstract class Vehicle implements Callable<Void> {
         this.state.handle(this);
     }
 
-    public double getArea() { return area; }
-    public double getWeight() { return weight; }
+    public abstract double getArea();
+
+    public abstract double getWeight();
 }
